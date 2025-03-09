@@ -9,9 +9,9 @@ class MongoTW {
         return {
             id: 'mongoTW',
             name: 'MongoTW',
-            color1: '#4DB33D', // Primary MongoDB green for the first theme color
-            color2: '#389728', // Secondary MongoDB darker green
-            color3: '#ffffff', // White for text contrast
+            color1: '#4DB33D', // MongoDB green
+            color2: '#389728', // Darker green
+            color3: '#ffffff', // White text
             blocks: [
                 {
                     opcode: 'connectToServer',
@@ -32,40 +32,58 @@ class MongoTW {
                 {
                     opcode: 'insertData',
                     blockType: Scratch.BlockType.COMMAND,
-                    text: 'Insert [DATA] into MongoDB',
+                    text: 'Insert [DATA] into [COLLECTION]',
                     arguments: {
                         DATA: {
                             type: Scratch.ArgumentType.STRING,
                             defaultValue: '{"key": "value"}',
+                        },
+                        COLLECTION: {
+                            type: Scratch.ArgumentType.STRING,
+                            defaultValue: 'defaultCollection',
                         },
                     },
                 },
                 {
                     opcode: 'findData',
                     blockType: Scratch.BlockType.REPORTER,
-                    text: 'Find data with query [QUERY]',
+                    text: 'Find data with query [QUERY] in [COLLECTION]',
                     arguments: {
                         QUERY: {
                             type: Scratch.ArgumentType.STRING,
                             defaultValue: '{"key": "value"}',
+                        },
+                        COLLECTION: {
+                            type: Scratch.ArgumentType.STRING,
+                            defaultValue: 'defaultCollection',
                         },
                     },
                 },
                 {
                     opcode: 'deleteData',
                     blockType: Scratch.BlockType.COMMAND,
-                    text: 'Delete data with query [QUERY]',
+                    text: 'Delete data with query [QUERY] in [COLLECTION]',
                     arguments: {
                         QUERY: {
                             type: Scratch.ArgumentType.STRING,
                             defaultValue: '{"key": "value"}',
+                        },
+                        COLLECTION: {
+                            type: Scratch.ArgumentType.STRING,
+                            defaultValue: 'defaultCollection',
                         },
                     },
                 },
                 {
                     opcode: 'countDocuments',
                     blockType: Scratch.BlockType.REPORTER,
-                    text: 'Count documents in MongoDB',
+                    text: 'Count documents in [COLLECTION]',
+                    arguments: {
+                        COLLECTION: {
+                            type: Scratch.ArgumentType.STRING,
+                            defaultValue: 'defaultCollection',
+                        },
+                    },
                 },
             ],
         };
@@ -94,12 +112,16 @@ class MongoTW {
 
     insertData(args) {
         const data = JSON.parse(args.DATA);
+        const collection = args.COLLECTION;
         return fetch('http://localhost:1200/insert', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ data }),
+            body: JSON.stringify({
+                data,
+                collection,
+            }),
         })
             .then(response => response.text())
             .catch(() => 'Error inserting data');
@@ -107,12 +129,16 @@ class MongoTW {
 
     findData(args) {
         const query = JSON.parse(args.QUERY);
+        const collection = args.COLLECTION;
         return fetch('http://localhost:1200/find', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ query }),
+            body: JSON.stringify({
+                query,
+                collection,
+            }),
         })
             .then(response => response.json())
             .catch(() => 'Error finding data');
@@ -120,19 +146,32 @@ class MongoTW {
 
     deleteData(args) {
         const query = JSON.parse(args.QUERY);
+        const collection = args.COLLECTION;
         return fetch('http://localhost:1200/delete', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ query }),
+            body: JSON.stringify({
+                query,
+                collection,
+            }),
         })
             .then(response => response.text())
             .catch(() => 'Error deleting data');
     }
 
-    countDocuments() {
-        return fetch('http://localhost:1200/count')
+    countDocuments(args) {
+        const collection = args.COLLECTION;
+        return fetch('http://localhost:1200/count', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                collection,
+            }),
+        })
             .then(response => response.json())
             .catch(() => 'Error counting documents');
     }
